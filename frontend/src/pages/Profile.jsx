@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar';
 import { useNavigate } from 'react-router-dom';
 
 const TripDetailModal = ({ isOpen, onClose, trip }) => {
+  const navigate = useNavigate();
   if (!isOpen || !trip) return null;
+
+  // Fallback image if none exists
+  const tripImg = trip.img || `https://source.unsplash.com/800x600/?${encodeURIComponent(trip.place || trip.name)},travel`;
 
   return (
     <div style={modalOverlayStyle}>
       <div className="signup-card" style={{ ...modalContentStyle, maxWidth: '600px', padding: 0, overflow: 'hidden' }}>
-        <div style={{ height: '250px', backgroundImage: `url(${trip.img})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+        <div style={{ height: '250px', backgroundImage: `url(${tripImg})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
           <button onClick={onClose} style={{ ...closeButtonStyle, position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
             <h2 style={{ margin: 0, color: 'white', fontSize: '1.8rem' }}>{trip.name}</h2>
@@ -31,12 +35,16 @@ const TripDetailModal = ({ isOpen, onClose, trip }) => {
             {trip.description || "Get ready for an unforgettable journey to " + trip.name + ". Explore breathtaking landscapes, rich culture, and local delicacies."}
           </p>
 
-          <h3 style={{ color: 'var(--primary)', marginBottom: '10px', fontSize: '1.1rem' }}>Highlights</h3>
-          <ul style={{ color: 'var(--text-muted)', paddingLeft: '20px', lineHeight: '1.8', fontSize: '0.95rem' }}>
-            {(trip.highlights || ["Visit iconic landmarks", "Sample local cuisine", "Hidden gems exploration", "Cultural workshops"]).map((h, i) => (
-              <li key={i}>{h}</li>
-            ))}
-          </ul>
+          {trip.highlights && trip.highlights.length > 0 && (
+            <>
+              <h3 style={{ color: 'var(--primary)', marginBottom: '10px', fontSize: '1.1rem' }}>Highlights</h3>
+              <ul style={{ color: 'var(--text-muted)', paddingLeft: '20px', lineHeight: '1.8', fontSize: '0.95rem' }}>
+                {trip.highlights.map((h, i) => (
+                  <li key={i}>{h}</li>
+                ))}
+              </ul>
+            </>
+          )}
 
           <div style={{ marginTop: '30px', display: 'flex', gap: '15px', flexDirection: 'column' }}>
             <div style={{ display: 'flex', gap: '15px' }}>
@@ -46,9 +54,25 @@ const TripDetailModal = ({ isOpen, onClose, trip }) => {
               <button 
                 className="submit-btn" 
                 style={{ flex: 1, background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
-                onClick={() => window.location.href = '/checklist'}
+                onClick={() => navigate('/checklist/' + trip.tripId)}
               >
                 🧳 Pack Bag
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <button 
+                className="input-field" 
+                style={{ flex: 1, border: '1px solid #f59e0b', color: '#f59e0b', fontWeight: '500' }}
+                onClick={() => navigate('/notes/' + trip.tripId)}
+              >
+                📝 Trip Notes
+              </button>
+              <button 
+                className="input-field" 
+                style={{ flex: 1, border: '1px solid #10b981', color: '#10b981', fontWeight: '500' }}
+                onClick={() => navigate('/expense/' + trip.tripId)}
+              >
+                💰 Expenses
               </button>
             </div>
             <button className="input-field" style={{ width: '100%' }} onClick={onClose}>Close Details</button>
@@ -145,6 +169,8 @@ const UserProfilePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [preplannedTrips, setPreplannedTrips] = useState([]);
+  const [previousTrips, setPreviousTrips] = useState([]);
   const [userData, setUserData] = useState({
     name: 'Rishi Jha',
     email: 'rishijha@example.com',
@@ -154,66 +180,22 @@ const UserProfilePage = () => {
     bio: 'Passionate traveler exploring the world one city at a time. Love discovering hidden gems and local cuisines.'
   });
 
-  const preplannedTrips = [
-    { 
-      name: 'Tokyo Adventure', 
-      date: 'Mar 2025',
-      startDate: 'Mar 12, 2025',
-      endDate: 'Mar 19, 2025',
-      duration: '7 Days',
-      isPrevious: false,
-      description: 'Explore the vibrant neon lights of Shinjuku, the traditional temples of Asakusa, and the world-class shopping in Ginza. A perfect blend of future and tradition.',
-      highlights: ['Robot Restaurant Show', 'Tsukiji Fish Market Breakfast', 'Mount Fuji Day Trip', 'Harajuku Street Style Tour'],
-      img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80' 
-    },
-    { 
-      name: 'Parisian Escape', 
-      date: 'June 2025',
-      startDate: 'June 05, 2025',
-      endDate: 'June 10, 2025',
-      duration: '5 Days',
-      isPrevious: false,
-      description: 'Experience the City of Light in all its glory. From the top of the Eiffel Tower to the hidden cafes of Montmartre.',
-      highlights: ['Louvre Private Tour', 'Seine River Dinner Cruise', 'Versailles Palace Visit', 'Croissant Baking Workshop'],
-      img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80' 
-    }
-  ];
+  // Fetch trips from backend
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/trips')
+      .then(res => res.json())
+      .then(data => {
+        const withImages = data.map(trip => ({
+          ...trip,
+          id: trip.tripId,
+          img: trip.img || `https://source.unsplash.com/800x600/?${encodeURIComponent(trip.place || trip.name)},travel`
+        }));
+        setPreplannedTrips(withImages.filter(t => !t.isPrevious));
+        setPreviousTrips(withImages.filter(t => t.isPrevious));
+      })
+      .catch(err => console.error('Failed to fetch trips:', err));
+  }, []);
 
-  const previousTrips = [
-    { 
-      name: 'Swiss Alps', 
-      date: 'Dec 2023',
-      startDate: 'Dec 15, 2023',
-      endDate: 'Dec 25, 2023',
-      duration: '10 Days',
-      isPrevious: true,
-      description: 'A winter wonderland adventure through Interlaken, Zermatt, and St. Moritz. Professional skiing and luxury fondue.',
-      highlights: ['Matterhorn Viewing', 'Glacier Express Ride', 'Night Sledding', 'Thermal Spa Relaxation'],
-      img: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=800&q=80' 
-    },
-    { 
-      name: 'Bali Retreat', 
-      date: 'Oct 2023',
-      startDate: 'Oct 01, 2023',
-      endDate: 'Oct 15, 2023',
-      duration: '14 Days',
-      isPrevious: true,
-      description: 'Spiritual rejuvenation in Ubud and beach bliss in Uluwatu. A deep dive into Balinese culture and nature.',
-      highlights: ['Sacred Monkey Forest', 'Tegalalang Rice Terrace', 'Surfing in Canggu', 'Sunrise Volcano Hike'],
-      img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80' 
-    },
-    { 
-      name: 'NYC Lights', 
-      date: 'Aug 2023',
-      startDate: 'Aug 10, 2023',
-      endDate: 'Aug 14, 2023',
-      duration: '4 Days',
-      isPrevious: true,
-      description: 'The ultimate urban jungle experience. Broadway shows, Central Park strolls, and skyline views.',
-      highlights: ['Times Square at Night', 'Statue of Liberty Ferry', 'Top of the Rock View', 'Brooklyn Bridge Sunset Walk'],
-      img: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=800&q=80' 
-    }
-  ];
 
   const handleTripClick = (trip) => {
     setSelectedTrip(trip);

@@ -1,17 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar';
+import { useParams } from 'react-router-dom';
 
 const PackingChecklist = () => {
+  const { tripId } = useParams();
+  
+  // Trip Lookup Data
+  const tripNames = {
+    'tokyo-2025': 'Tokyo Adventure',
+    'paris-2025': 'Parisian Escape',
+    'swiss-2023': 'Swiss Alps Expedition',
+    'bali-2023': 'Bali Tropical Retreat',
+    'nyc-2023': 'New York City Break'
+  };
+
   const [items, setItems] = useState([
     { id: 1, category: 'Documents', text: 'Passport', checked: true },
-    { id: 2, category: 'Documents', text: 'Flight Tickets (printed)', checked: true },
-    { id: 3, category: 'Documents', text: 'Travel Insurance', checked: true },
-    { id: 4, category: 'Documents', text: 'Hotel booking confirmation', checked: false },
-    { id: 5, category: 'Clothing', text: 'Casual Shirts', checked: true },
-    { id: 6, category: 'Clothing', text: 'Trousers / jeans', checked: false },
-    { id: 7, category: 'Electronics', text: 'Phone charger', checked: true },
-    { id: 8, category: 'Electronics', text: 'Universal power adapter', checked: false },
+    { id: 2, category: 'Documents', text: 'Travel Insurance', checked: true },
+    { id: 3, category: 'Clothing', text: 'Casual Shirts', checked: false },
+    { id: 4, category: 'Electronics', text: 'Universal power adapter', checked: false },
   ]);
+
+  useEffect(() => {
+    // Add trip-specific items
+    const baseItems = [
+      { id: 1, category: 'Documents', text: 'Passport', checked: true },
+      { id: 2, category: 'Documents', text: 'Travel Insurance', checked: true },
+      { id: 3, category: 'Electronics', text: 'Phone charger', checked: false },
+    ];
+
+    let specificItems = [];
+    if (tripId === 'tokyo-2025') {
+      specificItems = [
+        { id: 4, category: 'Essentials', text: 'Suica/Pasmo Card', checked: false },
+        { id: 5, category: 'Essentials', text: 'Pocket WiFi', checked: true },
+        { id: 6, category: 'Clothing', text: 'Walking Shoes', checked: false }
+      ];
+    } else if (tripId === 'swiss-2023') {
+      specificItems = [
+        { id: 4, category: 'Clothing', text: 'Heavy Parka', checked: true },
+        { id: 5, category: 'Clothing', text: 'Thermal Layers', checked: false },
+        { id: 6, category: 'Equipment', text: 'Ski Goggles', checked: false }
+      ];
+    } else if (tripId === 'bali-2023') {
+      specificItems = [
+        { id: 4, category: 'Essentials', text: 'Sunscreen (Reef Safe)', checked: false },
+        { id: 5, category: 'Clothing', text: 'Swimwear', checked: true },
+        { id: 6, category: 'Clothing', text: 'Sarong', checked: false }
+      ];
+    } else {
+      specificItems = [
+        { id: 4, category: 'Clothing', text: 'Comfortable Jeans', checked: false },
+        { id: 5, category: 'Clothing', text: 'Light Jacket', checked: false }
+      ];
+    }
+    
+    setItems([...baseItems, ...specificItems]);
+  }, [tripId]);
 
   const toggleItem = (id) => {
     setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
@@ -22,7 +67,7 @@ const PackingChecklist = () => {
   const progress = (packedCount / items.length) * 100;
 
   return (
-    <div className="signup-container" style={{ alignItems: 'flex-start', overflowY: 'auto', padding: '40px 20px' }}>
+    <div className="signup-container" style={{ alignItems: 'flex-start', padding: '40px 20px' }}>
       <div className="bg-blob bg-blob-1"></div>
       <div className="bg-blob bg-blob-2"></div>
 
@@ -41,7 +86,7 @@ const PackingChecklist = () => {
         <div style={{ marginBottom: '30px' }}>
           <h2 style={titleStyle}>Packing checklist</h2>
           <div className="input-field" style={tripDropdownStyle}>
-            Trip: Paris & Rome Adventure <span style={{ marginLeft: '10px' }}>↓</span>
+            Trip: {tripNames[tripId] || 'Custom Adventure'} <span style={{ marginLeft: '10px' }}>↓</span>
           </div>
           <p style={progressTextStyle}>Progress: {packedCount}/{items.length} items packed</p>
           <div style={progressBarBg}>

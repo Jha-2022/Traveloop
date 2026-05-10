@@ -6,6 +6,8 @@ import CreateTripScreen from './pages/CreateTrip';
 import UserProfilePage from './pages/Profile';
 import CommunityTab from './pages/Community';
 import PackingChecklist from './pages/Checklist';
+import TripNotesScreen from './pages/TripNotes';
+import ExpenseInvoiceScreen from './pages/Expense';
 import Home from './pages/Home';
 import './App.css';
 
@@ -28,7 +30,9 @@ function App() {
           <Route path="/create-trip" element={<CreateTripScreen />} />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/community" element={<CommunityTab />} />
-          <Route path="/checklist" element={<PackingChecklist />} />
+          <Route path="/checklist/:tripId" element={<PackingChecklist />} />
+          <Route path="/notes/:tripId" element={<TripNotesScreen />} />
+          <Route path="/expense/:tripId" element={<ExpenseInvoiceScreen />} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/landing" />} />

@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 const CreateTripScreen = () => {
   const navigate = useNavigate();
   const [tripData, setTripData] = useState({
+    name: '',
     startDate: '',
     endDate: '',
-    place: ''
+    place: '',
+    description: ''
   });
 
   const handleChange = (e) => {
@@ -15,23 +17,54 @@ const CreateTripScreen = () => {
     setTripData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Auto-calculate trip duration
+  const getDuration = () => {
+    if (tripData.startDate && tripData.endDate) {
+      const start = new Date(tripData.startDate);
+      const end = new Date(tripData.endDate);
+      const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      if (diff > 0) return `${diff} Days`;
+    }
+    return '';
+  };
+
+  // Auto-generate a tripId from place and date
+  const generateTripId = () => {
+    const placePart = tripData.place.toLowerCase().split(',')[0].replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const year = tripData.startDate ? new Date(tripData.startDate).getFullYear() : 'new';
+    return `${placePart}-${year}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const duration = getDuration();
+    if (!duration) {
+      alert('End date must be after start date.');
+      return;
+    }
+
     try {
       const response = await fetch('http://127.0.0.1:5000/trips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 1, // Mock userId
+          tripId: generateTripId(),
+          userId: 1,
+          name: tripData.name,
           startDate: tripData.startDate,
           place: tripData.place,
-          endDate: tripData.endDate
+          endDate: tripData.endDate,
+          duration: duration,
+          description: tripData.description || `An exciting trip to ${tripData.place}.`,
+          highlights: JSON.stringify([]),
+          img: `https://source.unsplash.com/800x600/?${encodeURIComponent(tripData.place)},travel`,
+          isPrevious: 0
         })
       });
 
       const data = await response.json();
       if (response.ok) {
-        alert('Trip saved successfully in database!');
+        alert('Trip saved successfully!');
         navigate('/profile');
       } else {
         alert('Error: ' + data.error);
@@ -44,10 +77,10 @@ const CreateTripScreen = () => {
 
   const suggestions = [
     { name: 'Mountain Hiking', img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=400&q=80' },
-    { name: 'Beach Sunset', img: 'https://images.unsplash.com/photo-1520116468816-95b69e847357?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Beach Sunset', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80' },
     { name: 'City Architecture', img: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=400&q=80' },
-    { name: 'Art Museum', img: 'https://images.unsplash.com/photo-1518998053574-53f0201f9b0d?auto=format&fit=crop&w=400&q=80' },
-    { name: 'Scuba Diving', img: 'https://images.unsplash.com/photo-1544551763-47a0160c1e94?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Art Museum', img: 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Scuba Diving', img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=400&q=80' },
     { name: 'Street Food', img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80' }
   ];
 
@@ -67,6 +100,18 @@ const CreateTripScreen = () => {
           <h2 style={sectionTitleStyle}>Plan a new trip</h2>
           <form onSubmit={handleSubmit} style={formContainerStyle}>
             <div style={inputRowStyle}>
+              <label style={labelStyle}>Trip Name:</label>
+              <input 
+                type="text" 
+                name="name"
+                className="input-field" 
+                placeholder="e.g. Dubai Getaway" 
+                style={inlineInputStyle} 
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div style={inputRowStyle}>
               <label style={labelStyle}>Start Date:</label>
               <input 
                 type="date" 
@@ -78,7 +123,7 @@ const CreateTripScreen = () => {
               />
             </div>
             <div style={inputRowStyle}>
-              <label style={labelStyle}>Select a Place :</label>
+              <label style={labelStyle}>Select a Place:</label>
               <input 
                 type="text" 
                 name="place"
@@ -100,6 +145,24 @@ const CreateTripScreen = () => {
                 required
               />
             </div>
+            <div style={inputRowStyle}>
+              <label style={labelStyle}>Description:</label>
+              <textarea 
+                name="description"
+                className="input-field" 
+                placeholder="Describe your trip plans..." 
+                style={{ ...inlineInputStyle, minHeight: '70px', resize: 'vertical' }} 
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Duration preview */}
+            {getDuration() && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0' }}>
+                <span style={{ color: 'var(--primary)', fontSize: '0.9rem' }}>⏱️ Duration:</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: '500' }}>{getDuration()}</span>
+              </div>
+            )}
             
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
               <button type="submit" className="submit-btn" style={{ width: 'auto', padding: '12px 40px' }}>
@@ -108,6 +171,7 @@ const CreateTripScreen = () => {
             </div>
           </form>
         </section>
+
 
         {/* Suggestions Section */}
         <section>
