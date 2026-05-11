@@ -3,7 +3,7 @@ Traveloop is a comprehensive web application designed to streamline the travel e
 
   <p align="center">
   <img src="frontend/public/landingpage.png" width="47%" alt="Dashboard Overview" />
-  <img src="frontend/public/h2ssnapshot1.png" width="47%" alt="Route Mapping" />
+  <img src="frontend/public/profileimg.png" width="47%" alt="Route Mapping" />
 </p>
 
 
