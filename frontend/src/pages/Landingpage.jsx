@@ -118,7 +118,7 @@ const TraveloopLanding = () => {
   );
 };
 
-landingpage styles
+// landingpage styles
 const bannerStyle = {
   width: '100%',
   height: '300px',
