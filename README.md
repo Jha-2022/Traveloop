@@ -1,5 +1,6 @@
 # Traveloop
-Traveloop is a comprehensive web application designed to streamline the travel experience by combining trip planning, expense management, and community interaction into a single platform. Built using the MERN stack (MongoDB, Express, React, and Node.js), it provides travelers with a suite of tools to organize their itineraries and share insights with a global network of users.
+Traveloop is a full-stack travel companion app that brings everything you need for a trip into one place — itinerary planning, expense tracking, collaborative checklists, trip notes, and a community feed to connect with fellow travelers worldwide.
+Built on the MERN stack (MongoDB, Express, React, Node.js), Traveloop is designed for real travelers who want organization without the overhead.
 
 <p align="center"> <img src="frontend/public/landingpage.png" height = "47%" width="47%" alt="Dashboard Overview" /> <img src="frontend/public/profileimg.png" height = "52%" width="47%" alt="Route Mapping" /> </p>
 
