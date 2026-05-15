@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar from '../components/navbar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; /* Landing Page React Code */
 const TraveloopLanding = () => {
   const navigate = useNavigate();
   const regions = [
